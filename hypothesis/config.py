@@ -12,11 +12,11 @@ TAGS = 0
 TAGS_DEL = "|"
 
 #required
-TAG_REGEX = r".*"
-#To avoid it
-#TAG_REGEX = "[\s.]*"
+TAG_REGEX = r"(?<=species:ncbi:).*$"
+#To avoid it un comment next line
+#TAG_REGEX = r".*$"
 
-TAGS_TEXT = "NCBI TAXONOMY ID"
+TAGS_TEXT = "NCBI SPECIE ID"
 
 #optional, If you don't provied title, than it will be as UNTITLED DOCUMENT.
 #It gets a list of titles
@@ -31,10 +31,14 @@ END_POS = 3
 #Required
 EXACT_TEXT = 4
 
+#Required
+URL = 6
 
 
 
-GROUP = "VXNBpgkL"
+
+
+GROUP = "KKEMPvD3"
 PERMISSIONS = {
     "read": [
         f"group:{GROUP}",

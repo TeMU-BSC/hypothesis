@@ -1,3 +1,6 @@
+"""
+    Upload annotations to Hypothesis 
+"""
 import click
 import json
 import requests
@@ -7,9 +10,10 @@ import re
 from hypothesis.hypothesis_api import Api
 from hypothesis.utils import create_annotation
 from hypothesis import config
+from pprint import pprint
 
 
-def add_annotations(api, file, dir_url):
+def add_annotations(api, file):
     api_endpoint = api.urls["links"]["annotation"]["create"]["url"]
     lines = None
     with open(file) as inputF:
@@ -19,13 +23,13 @@ def add_annotations(api, file, dir_url):
 
     annotations = []
     print("")
-    for line in lines[:5]:
+    for line in lines:
         fields = line.split(config.FIELDS_DEL)
         start_pos = None
         end_pos = None
         tags_list = None
 
-        uri = os.path.join(dir_url, fields[config.DOCUMENT_NAME])+".txt"
+        uri = fields[config.URL]
 
         titles_list = [fields[config.DOCUMENT_NAME]]
         selected_text = fields[config.EXACT_TEXT]
@@ -70,45 +74,53 @@ def add_annotations(api, file, dir_url):
         else:
             text = "Failed"
 
-        print(i,annotation[uri],':',text)
-     
+        print(i, ':', text)
+
     return
 
 
 def get_annotations(api):
-    api_endpoint = api.urls["links"]["annotation"]["search"]["url"]
+    api_endpoint = api.urls["links"]["search"]["url"]
+    
+    response = requests.get(
+            api_endpoint,headers=api.header,params={"group":config.GROUP,"wildcard_uri":None,"tag":None})
 
-    print("TODO")
+    pprint(response.json())
 
-def fun_annotations(api, file, dir_url):
+
+def fun_annotations(api, file):
     content = None
 
     if file:
-        if dir_url:
-            add_annotations(api, file, dir_url)
-        else:
-            print("Require dir url for documents. EX: --dir_url ftp://example.com/dir")
+        add_annotations(api, file)
     else:
         get_annotations(api)
 
 
+
+def get_groups(api):
+    api_endpoint = api.urls["links"]["groups"]["read"]["url"]
+    response = requests.get(
+            api_endpoint,headers=api.headers)
+
+    pprint(response.json())
+
 @click.command()
 @click.option('--annotations/--no-annotations', default=False)
 @click.option('--file', default=None, help="File of annotations to upload. It required, if you want to add new annotations")
-@click.option('--dir_url', default=None, help="URL of parent directroy to browese the file.")
 @click.option('--users', default=False)
-@click.option('--groups', default=False)
+@click.option('--groups/--no-groups', default=False)
 @click.option('--token', default=None)
-def main(annotations, file, users, groups, token, dir_url):
+def main(annotations, file, users, groups, token):
     bearer_token = token or config.bearer_token
     api = Api(bearer_token)
 
     if annotations:
-        result = fun_annotations(api, file, dir_url)
+        result = fun_annotations(api, file)
     elif users:
         pass
     elif groups:
-        pass
+        get_groups(api)
     else:
         print(
             "You must select a option: --annotations, --users, --groups\n[--help] to see help menu.")
